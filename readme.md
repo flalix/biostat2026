@@ -2,8 +2,8 @@
 
 Curso de Biostatística oferecido pela ESIB/Instituto Butantan
 
-| Jan/Fev 2026
-| Professor: PhD Flavio Lichtenstein
+  | Jan/Fev 2026
+  | Professor: PhD Flavio Lichtenstein
 
 1. Ciência, Biologia e Medicina
 2. Estatística História + Notebook - Primeiros passos
