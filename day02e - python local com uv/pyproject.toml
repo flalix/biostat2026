@@ -1,0 +1,43 @@
+[project]
+name = "proj2026"
+version = "0.1.0"
+description = "Aula de bioestatística (2016)"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "numpy",
+    "pandas",
+    "requests",
+    "scikit-learn",
+    "statsmodels",
+    "matplotlib",
+    "seaborn",
+    "plotly",
+    "kaleido",
+    "jupyter",
+    "biopython>=1.86",
+    "biomart>=0.9.2",
+    "openpyxl>=3.1.5",
+    "dask>=2026.1.1",
+    "decorator>=5.2.1",
+    "docutils>=0.22.4",
+    "entrypoints>=0.4",
+    "flask>=3.1.2",
+    "networkx>=3.6.1",
+    "graphviz>=0.21",
+    "spacy>=3.7.5",
+    "scispacy>=0.5.5",
+    "nltk>=3.9.2",
+]
+
+[tool.uv]
+package = true
+
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+
