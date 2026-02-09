@@ -353,3 +353,51 @@ def plot_2_distribuições_normais(MUs, SSDs, N1, N2, colors = ['blue', 'red'], 
 	ax.set_title(title)
 	plt.grid()
 	plt.legend();
+
+
+def join_series(samp1, samp2):
+    dic = {'vals': samp1, 'grupo': 'samp1'}
+    df = pd.DataFrame(dic)
+
+    dic = {'vals': samp2, 'grupo': 'samp2'}
+    df2 = pd.DataFrame(dic)
+
+    df = pd.concat([df, df2])
+
+    df.reset_index(inplace=True, drop=True)
+    
+    return df
+
+#-- função fi --> calcula o Gamma que um fator de "confianca" (~95%) da estatística
+# disribuição bi-caudal --> correto - intervalo de confianca
+
+# confianca é de 95% --> alpha = 0.05
+# confianca é de 99% --> alpha = 0.01
+
+
+def calc_intervalo_confianca(samp1, samp2, confianca=.95):
+    
+    n1, n2 = len(samp1), len(samp2)
+    
+    mu1 = np.mean(samp1); ssd1 = np.std(samp1, ddof=1)
+    mu2 = np.mean(samp2); ssd2 = np.std(samp2, ddof=1)
+    
+    _, p_lev = stats.levene(samp1, samp2)
+    equal_var = p_lev > 0.05
+    
+    # Welch-Satterthwaite
+    dof = (ssd1**2/n1 + ssd2**2/n2)**2 / ( (ssd1**2/n1)**2/(n1-1) + (ssd2**2/n2)**2/(n2-1) )
+    
+    diff = mu2 - mu1
+    SEM = np.sqrt(ssd1**2/n1 + ssd2**2/n2)
+    
+    ssd_pool = math.sqrt( ((n1-1)*ssd1**2 + (n2-1)*ssd2**2) / (n1+n2-2) )
+    effect_size = diff / ssd_pool
+    
+    alpha = 1 - confianca
+    tcrit = stats.t.ppf(1 - alpha/2, dof)
+    CI = (diff - tcrit*SEM, diff + tcrit*SEM)
+    
+    _, pval_ttest, stri_ttest = calc_ttest_independente(samp1, samp2, equal_var=equal_var)
+    
+    return CI, SEM, n1, n2, effect_size, diff, pval_ttest, stri_ttest, mu1, mu2, ssd1, ssd2, ssd_pool
