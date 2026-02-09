@@ -356,10 +356,10 @@ def plot_2_distribuições_normais(MUs, SSDs, N1, N2, colors = ['blue', 'red'], 
 
 
 def join_series(samp1, samp2):
-    dic = {'vals': samp1, 'grupo': 'samp1'}
+    dic = {'val': samp1, 'grupo': 'samp1'}
     df = pd.DataFrame(dic)
 
-    dic = {'vals': samp2, 'grupo': 'samp2'}
+    dic = {'val': samp2, 'grupo': 'samp2'}
     df2 = pd.DataFrame(dic)
 
     df = pd.concat([df, df2])
@@ -367,6 +367,24 @@ def join_series(samp1, samp2):
     df.reset_index(inplace=True, drop=True)
     
     return df
+
+def join_3series(samp1, samp2, samp3):
+	dic = {'val': samp1, 'grupo': 'samp1'}
+	df = pd.DataFrame(dic)
+
+	dic = {'val': samp2, 'grupo': 'samp2'}
+	df2 = pd.DataFrame(dic)
+
+	dic = {'val': samp3, 'grupo': 'samp3'}
+	df3 = pd.DataFrame(dic)
+
+	df = pd.concat([df, df2, df3])
+
+	df.reset_index(inplace=True, drop=True)
+
+	return df
+
+
 
 #-- função fi --> calcula o Gamma que um fator de "confianca" (~95%) da estatística
 # disribuição bi-caudal --> correto - intervalo de confianca
@@ -401,3 +419,18 @@ def calc_intervalo_confianca(samp1, samp2, confianca=.95):
     _, pval_ttest, stri_ttest = calc_ttest_independente(samp1, samp2, equal_var=equal_var)
     
     return CI, SEM, n1, n2, effect_size, diff, pval_ttest, stri_ttest, mu1, mu2, ssd1, ssd2, ssd_pool
+
+def test_one_way_ANOVA5 (samp1, samp2, samp3, samp4, samp5, alpha = 0.05):
+	# teste de variancias de Fisher - one way ANOVA (analysis of variance)
+	stat, pvalue = stats.f_oneway(samp1, samp2, samp3, samp4, samp5)
+
+	if pvalue > alpha:
+		text = 'As distribuições têm médias similares (não se rejeita a H0)'
+		ret = True
+	else:
+		text = 'As distribuições não têm médias similares (rejeita-se a H0)'
+		ret = False
+
+	text_stat = 'p-value %.2e (%s)'%(pvalue, stat_asteristics(pvalue))
+
+	return ret, text, text_stat, stat, pvalue
