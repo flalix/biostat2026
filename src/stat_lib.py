@@ -384,7 +384,26 @@ def join_3series(samp1, samp2, samp3):
 
 	return df
 
+def join_series_by_list(samp_list:list, name_list:list=[]):
 
+	df_list = []
+	for i in range(len(samp_list)):
+		samples = samp_list[i]
+
+		if name_list == []:
+			label = f"samp{i+1}"
+		else:
+			label = name_list[i]
+		
+		dic = {'val': samples, 'grupo': label}
+		df = pd.DataFrame(dic)
+		
+		df_list.append(df)
+
+	df = pd.concat(df_list)
+	df.reset_index(inplace=True, drop=True)
+
+	return df
 
 #-- função fi --> calcula o Gamma que um fator de "confianca" (~95%) da estatística
 # disribuição bi-caudal --> correto - intervalo de confianca
