@@ -20,9 +20,15 @@ from typing import List  #  Optional, Iterable, Set, Tuple, Any
 
 from statistics import mode
 from scipy import stats
+from scipy.stats import dunnett
+#-- for Tukey
+from statsmodels.stats.multicomp import MultiComparison
+
 
 import seaborn as sns
 import matplotlib.pyplot as plt
+
+colors = ['yellow', 'blue', 'red']
 
 def prepare_title(title, maxCount=12):
 	if title == None: return None
@@ -254,7 +260,7 @@ def calc_ttest_independente(samp1:list, samp2:list, equal_var:bool=True, alpha:f
 	msg = f"Teste-t independente = estatística {t:.3f} e p-valor {pval:.2e}"
 
 	if pval >= alpha:
-		msg += '\n' + "Aceitamos a Hipótese nula, não houve efeicalc_normalidade_SWTto significativo."
+		msg += '\n' + "Aceitamos a Hipótese nula, não houve efeito significativo."
 	else:
 		msg += '\n' + "Rejeitamos a Hipótese nula, houve efeito significativo."
 
@@ -271,7 +277,7 @@ def calc_normalidade_SWT(sample, alpha = 0.05, NS='NS'):
 		text = 'Segundo o teste de Shapiro-Wilk a distribuição não se assemelha a uma distribuição normal (rejeita-se H0)'
 		ret = False
 
-	s_ater = stat_asteristics(pvalue)
+	s_ater = stat_asteristics(pvalue, NS=NS)
 	text_stat = f'p-value {pvalue:.2e} ({s_ater})'
 
 	return ret, text, text_stat, stat, pvalue
@@ -443,13 +449,50 @@ def test_one_way_ANOVA5 (samp1, samp2, samp3, samp4, samp5, alpha = 0.05):
 	# teste de variancias de Fisher - one way ANOVA (analysis of variance)
 	stat, pvalue = stats.f_oneway(samp1, samp2, samp3, samp4, samp5)
 
-	if pvalue > alpha:
-		text = 'As distribuições têm médias similares (não se rejeita a H0)'
+	if pvalue >= alpha:
+		text = 'Aceita-se H0, as distribuições vêm de mesma origem de dados.'
 		ret = True
 	else:
-		text = 'As distribuições não têm médias similares (rejeita-se a H0)'
+		text = 'Rejeitas-se H0, ao menos uma distribuição tem valores de outra distribuição.'
 		ret = False
 
 	text_stat = 'p-value %.2e (%s)'%(pvalue, stat_asteristics(pvalue))
 
 	return ret, text, text_stat, stat, pvalue
+
+def test_one_way_ANOVA_list(samp_list, alpha = 0.05):
+	# teste de variancias de Fisher - one way ANOVA (analysis of variance)
+	stat, pvalue = stats.f_oneway(*samp_list)
+
+	if pvalue >= alpha:
+		text = 'Aceita-se H0, as distribuições vêm de mesma origem de dados.'
+		ret = True
+	else:
+		text = 'Rejeitas-se H0, ao menos uma distribuição tem valores de outra distribuição.'
+		ret = False
+
+	text_stat = 'p-value %.2e (%s)'%(pvalue, stat_asteristics(pvalue))
+
+	return ret, text, text_stat, stat, pvalue
+
+
+
+def calc_TukeyHSD(df:pd.DataFrame):
+	'''
+	df = val and grupo
+	'''
+
+	cardata = MultiComparison(df.val, df.grupo)
+	results = cardata.tukeyhsd()
+
+	title  = "Tukey test: multiple comparisons between all pairs"
+
+	results.plot_simultaneous()
+	plt.title(title)
+
+	return results.summary()
+
+
+def calc_Dunnett_test(val_list:list, control:list):
+	res = dunnett(*val_list, control=control)
+	return res, res.pvalue
