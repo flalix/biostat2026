@@ -14,7 +14,7 @@ from os.path import join as osjoin
 from os.path import exists as exists
 import pandas as pd
 # from collections import OrderedDict
-from typing import List  #  Optional, Iterable, Set, Tuple, Any
+from typing import List, Tuple   # Optional, Iterable, Set, , Any
 
 # import zipfile, zlib
 
@@ -496,3 +496,91 @@ def calc_TukeyHSD(df:pd.DataFrame):
 def calc_Dunnett_test(val_list:list, control:list):
 	res = dunnett(*val_list, control=control)
 	return res, res.pvalue
+
+
+
+def calc_params_remove_outliers(vals, name=None, type=None, 
+								canNeg = False, ndig=2) -> Tuple[list, pd.DataFrame]:
+	try:
+		vals = list(vals)
+	except:
+		print("Error: vals")
+		return [], pd.DataFrame()
+
+	meds=[]; mus=[]; stds=[]; ses=[]; ns=[]; minis=[]; maxis=[]
+	normals=[]; pvalues=[]; normalities=[]
+	q1s=[]; q2s=[]; q3s=[]; iqs=[]; qsups=[]; qinfs=[]
+	corrections=['wo_correction', 'corrected']
+
+	# passa 2x - na 1a tira os outliers
+	for i in range(2):
+		med = np.median(vals).round(ndig)
+		mu  = np.mean(vals).round(ndig)
+		std = np.std(vals).round(ndig)
+		n   = len(vals)
+		SEM  = (std / np.sqrt(n)).round(ndig)
+		mini = np.min(vals).round(ndig)
+		maxi = np.max(vals).round(ndig)
+
+		try:
+			q1, q2, q3 = np.percentile(vals, [25,50,75]).round(ndig)
+			iq = q3 - q1
+			qsup = q3 + 1.5*iq
+			qinf = q1 - 1.5*iq
+
+			if not canNeg and qinf < 0:
+				qinf = 0
+		except:
+			q1, q2, q3, iq = None, None, None, None
+			qsup, qinf = None, None
+
+		q1s.append(q1)
+		q2s.append(q2)
+		q3s.append(q3)
+		iqs.append(iq)
+		qsups.append(qsup)
+		qinfs.append(qinf)
+
+		if len(vals) > 2 and std > 0 and type == 'continuous':
+			ret, _, text_stat, _, pvalue = calc_normalidade_SWT(vals)
+			stri_stat = text_stat.replace('<br>', ' ')
+		else:
+			ret = None;pvalue=None; stri_stat = ''
+
+		meds.append(med); mus.append(mu); stds.append(std)
+		ses.append(SEM); ns.append(n); minis.append(mini); maxis.append(maxi)
+		normals.append(ret); pvalues.append(pvalue); normalities.append(stri_stat)
+
+		if i == 0 and iq is not None:
+			#-- only remove outliers if quantiles are different
+			if q1 != q2 and q2 != q3:
+				#--- removing outliers
+				vals = [x for x in vals if x <= qsup]
+				vals = [x for x in vals if x >= qinf]
+
+
+	# print(vals, meds, mus, q2s, qsups, normals, pvalues)
+	# print(meds, mus, stds, ses, ns, minis, maxis, normals, pvalues, normalities)
+	dfa =  pd.DataFrame(np.array([corrections, meds, mus, stds, ses, ns, minis, maxis,
+								  q1s, q2s, q3s, iqs, qsups, qinfs,
+								  normals, pvalues, normalities]).T,
+						columns=['correction', 'median', 'mean', 'std', 'SEM', 'n', 'mini', 'maxi',
+								 'q1', 'q2', 'q3', 'iq', 'qsup', 'qinf',
+								 'normal', 'pvalue', 'normal_obs'])
+
+	if not name is None:
+		meds=[]; mus=[]; stds=[]; ses=[]; ns=[]; minis=[]; maxis=[]
+		normals=[]; pvalues=[]; normalities=[]
+		q1s=[]; q2s=[]; q3s=[]; iqs=[]; qsups=[]; qinfs=[]
+		corrections=['wo_correction', 'corrected']
+
+		for i in range(2):
+			med = np.median(vals).round(ndig)
+			mu  = np.mean(vals).round(ndig)
+			std = np.std(vals).round(ndig)
+
+			dfa['case'] = name
+			cols = list(dfa.columns[:-1])
+			dfa = dfa[ ['case'] + cols]
+
+	return vals, dfa
