@@ -260,9 +260,9 @@ def calc_ttest_independente(samp1:list, samp2:list, equal_var:bool=True, alpha:f
 	msg = f"Teste-t independente = estatística {t:.3f} e p-valor {pval:.2e}"
 
 	if pval >= alpha:
-		msg += '\n' + "Aceitamos a Hipótese nula, não houve efeito significativo."
+		msg += '\n' + "Não rejeitamos a Hipótese Nula, não houve efeito significativo."
 	else:
-		msg += '\n' + "Rejeitamos a Hipótese nula, houve efeito significativo."
+		msg += '\n' + "Rejeitamos a Hipótese Nula, houve efeito significativo."
 
 	return t, pval, msg   
     
@@ -271,7 +271,7 @@ def calc_normalidade_SWT(sample, alpha = 0.05, NS='NS'):
 	stat, pvalue = stats.shapiro(sample)
 
 	if pvalue > alpha:
-		text = 'Segundo o teste de Shapiro-Wilk a distribuição se assemelha a uma distribuição normal (aceita-se H0)'
+		text = 'Segundo o teste de Shapiro-Wilk a distribuição se assemelha a uma distribuição normal (não se rejeita H0)'
 		ret = True
 	else:
 		text = 'Segundo o teste de Shapiro-Wilk a distribuição não se assemelha a uma distribuição normal (rejeita-se H0)'
@@ -450,7 +450,7 @@ def test_one_way_ANOVA5 (samp1, samp2, samp3, samp4, samp5, alpha = 0.05):
 	stat, pvalue = stats.f_oneway(samp1, samp2, samp3, samp4, samp5)
 
 	if pvalue >= alpha:
-		text = 'Aceita-se H0, as distribuições vêm de mesma origem de dados.'
+		text = 'Não se rejeita H0, as distribuições vêm de mesma origem de dados.'
 		ret = True
 	else:
 		text = 'Rejeitas-se H0, ao menos uma distribuição tem valores de outra distribuição.'
@@ -465,10 +465,10 @@ def test_one_way_ANOVA_list(samp_list, alpha = 0.05):
 	stat, pvalue = stats.f_oneway(*samp_list)
 
 	if pvalue >= alpha:
-		text = 'Aceita-se H0, as distribuições vêm de mesma origem de dados.'
+		text = 'Não se rejeita H0, as distribuições vêm de uma mesma distribuição original.'
 		ret = True
 	else:
-		text = 'Rejeitas-se H0, ao menos uma distribuição tem valores de outra distribuição.'
+		text = 'Rejeitas-se H0, ao menos uma distribuição tem valores não oriundos da distribuição original.'
 		ret = False
 
 	text_stat = 'p-value %.2e (%s)'%(pvalue, stat_asteristics(pvalue))
